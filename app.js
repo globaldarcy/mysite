@@ -7,11 +7,11 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
-var ceLogin = require('connect-ensure-login');
 
-var db = require('./routes');
-// var index = require('./routes/index');
-// var users = require('./routes/users');
+var db = require('./db');
+var index = require('./routes/index');
+var users = require('./routes/users');
+
 passport.use(new Strategy(
   function (username, password, cb) {
     db.users.findByUsername(username, function (err, user) {
@@ -60,30 +60,14 @@ app.use(session({secret: 'keyboard cat', resave: false, saveUninitialized: false
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Define routes.
-app.get('/', function (req, res) {
-  res.render('home', {user: req.user});
-});
 
-app.get('/login', function (req, res) {
-  res.render('login');
-});
 
-app.post('/login', passport.authenticate('local', {failureRedirect: '/login'}), function (req, res) {
+app.use('/', index);
+app.use('/users', users);
+
+app.use('/*', function (req, res) {
   res.redirect('/');
 });
-
-app.get('/logout', function (req, res) {
-  req.logout();
-  res.redirect('/');
-});
-
-app.get('/profile', ceLogin.ensureLoggedIn(), function (req, res) {
-  res.render('profile', {user: req.user});
-});
-
-// app.use('/', index);
-// app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
